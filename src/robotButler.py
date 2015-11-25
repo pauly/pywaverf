@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 """
-This module accesses the custom Lightwaverf extension in Pigpio
-
-Pigpio must have been built with the Lightwave custom extension
-Pigpiod must be running (sudo pigpiod)
-
+Control your lightwaverf devices by name
+A python port of https://rubygems.org/gems/lightwaverf
 """
 
 import time
@@ -37,7 +34,7 @@ class robot_butler():
     self.tx = tx(self.pi, TX_PIN) # Specify Pi, tx gpio, and baud.
 
   def stop(self):
-    time.sleep(1)
+    time.sleep(0.5)
     self.tx.cancel()
     self.pi.stop()
 
@@ -45,11 +42,32 @@ class robot_butler():
     """
     Interpret the command line
     """
-    # if this then that
+    
+    if args[1] == 'help':
+      return self.help(*args[1:])
+    if args[1] == 'configure':
+      return self.configure(*args[1:])
+    if args[1] == 'sequence':
+      return self.sequence(*args[1:])
+    if args[1] == 'mood':
+      return self.mood(*args[1:])
+    if args[1] == 'energy':
+      return self.energy(*args[1:])
+    if args[1] == 'update_timers':
+      return self.updateTimers(*args[1:])
+    if args[1] == 'timer':
+      return self.runTimers(*args[1:])
+    if args[1] == 'run_timers':
+      return self.runTimers(*args[1:])
+    if args[1] == 'update':
+      return self.updateConfig(*args[1:])
+    if args[1] == 'summarise':
+      return self.summarise(*args[1:])
+    if args[1] == 'web':
+      return self.buildWebPage(*args[1:])
     if len(args) >= 4:
-      self.send(*args[1:])
-    else:
-      print('usage:', args[0], 'room device [on/off] [debug]' )
+      return self.send(*args[1:])
+    print('usage:', args[0], 'room device [on/off] [debug]')
 
   def send(self, room, device, status = 'on', debug = False):
     """
