@@ -11,7 +11,7 @@ import time
 import pigpio
 import yaml
 import sys
-import lwrfCustom
+import time
 
 # Pigpio custom extension calls for Lightwaverf
 CUSTOM_LWRF           =7287
@@ -23,7 +23,7 @@ CUSTOM_LWRF_TX_DEBUG  =5
 LWRF_MSGLEN           =10
 
 TX_PIN = 25
-TX_REPEAT = 5
+TX_REPEAT = 10
 
 class robot_butler():
 
@@ -37,6 +37,7 @@ class robot_butler():
     self.tx = tx(self.pi, TX_PIN) # Specify Pi, tx gpio, and baud.
 
   def stop(self):
+    time.sleep(1)
     self.tx.cancel()
     self.pi.stop()
 
@@ -45,14 +46,14 @@ class robot_butler():
     Interpret the command line
     """
     # if this then that
-    if len(args) == 4:
+    if len(args) >= 4:
       self.send(*args[1:])
     else:
       print('usage:', args[0], 'room device [on/off] [debug]' )
 
   def send(self, room, device, status = 'on', debug = False):
     """
-    Send a command to a device
+    Convert a room name + device name to ids, and send
     """
     for r in range( len( self.config['room'] )):
       if self.config['room'][r]['name'] != room:
@@ -60,17 +61,23 @@ class robot_butler():
       for d in range( len( self.config['room'][r]['device'] )):
         if self.config['room'][r]['device'][d]['name'] != device:
           continue
-        print('send', room, device, d)
         # Level      2 bit     Device setting
         # Device     1 bit     Device ID, relative to room and remote
         # Command    1 bit     On/Off/Mood
         # Remote ID  5 bit     Remote ID
         # Room       1 bit     Room ID, relative to device and remote
-        # byte msg[] = { 0x00, 0x00, 0x02, 0x01, 0x0F, 0x00, 0x0D, 0x0C, 0x02, 0x08 }; // lounge light on as black remote
-        analog = 0
-        status = 0
-        command = '{:02d}{:1}{:1}{:5}{:1}'.format(analog, d, status, '30FDA', r)
-        print 'Transmit testing sending', command, TX_REPEAT, "times"
+
+        # print( 'dining light on   1F 0 1 30FDA 1' )
+        # print( 'dining light off  00 0 0 30FD0 1' )
+        # print( 'dining all off    40 1 0 30FDA 1' )
+
+        analog = 0x1f 
+        digital = 1
+        if status == 'off':
+          analog = 0
+          digital = 0
+
+        command = '{:02X}{:1X}{:1X}{:5}{:1X}'.format(analog, d, digital, '30FDA', r)
         self.tx.put(command, TX_REPEAT)
 
 class tx():
@@ -116,6 +123,8 @@ class tx():
     self.pi.custom_2(CUSTOM_LWRF, [CUSTOM_LWRF_TX_CANCEL])
 
 if __name__ == "__main__":
+
+  import robotButler
 
   instance = robot_butler()
   instance.parseCommand(sys.argv)
