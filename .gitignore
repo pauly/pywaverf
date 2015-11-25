@@ -55,3 +55,18 @@ docs/_build/
 
 # PyBuilder
 target/
+
+src/pig*
+src/x_*
+src/Makefile
+src/README
+src/UNLICENCE
+src/*.c
+src/*.h
+src/*.cext
+src/lwrfCustom.py
+src/setup.py
+src/MakeRemote
+pigpio.*
+LightWaveRF
+lightwaverf-config.yml
